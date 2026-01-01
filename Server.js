@@ -1,31 +1,55 @@
-import express from 'express'
-const app = express()
-import dotenv from "dotenv"
-dotenv.config()
-import authRoutes from './Routes/auth.route.js'
-import { connectDB } from './Database/db.js'
-import cookieParser from 'cookie-parser'
-import userRoutes from './Routes/user.route.js'
-import chatRoutes from './Routes/chat.route.js'
+import express from 'express';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
+import authRoutes from './Routes/auth.route.js';
+import userRoutes from './Routes/user.route.js';
+import chatRoutes from './Routes/chat.route.js';
+import { connectDB } from './Database/db.js';
 
+dotenv.config();
 
+const app = express();
 
-const PORT = process.env.PORT
+// ---------- PORT ----------
+const PORT = process.env.PORT || 4001;
+
+// ---------- CORS ----------
+const allowedOrigins = [
+  "http://localhost:5173", // local frontend
+  "https://your-vercel-frontend-url.vercel.app" // replace with your Vercel URL
+];
+
 app.use(cors({
-    origin:"http://localhost:5173",
-    credentials:true  // allow frontend to send cookies
-}))
-app.use(express.json())
-app.use(cookieParser());                  
+  origin: function(origin, callback) {
+    // allow requests like Postman or server-to-server (no origin)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `CORS error: The origin ${origin} is not allowed.`;
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true // allow cookies to be sent
+}));
 
-app.use("/api/auth", authRoutes)
-app.use("/api/users", userRoutes)
-app.use("/api/chat", chatRoutes)
+// ---------- MIDDLEWARE ----------
+app.use(express.json());
+app.use(cookieParser());
 
-app.listen(PORT, ()=>{
-    console.log(`Server is running in PORT ${PORT}`);
-    connectDB();
-    
-})
+// ---------- ROUTES ----------
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/chat", chatRoutes);
+
+// ---------- DATABASE ----------
+connectDB()
+  .then(() => console.log("MongoDB connected successfully"))
+  .catch(err => console.error("MongoDB connection error:", err));
+
+// ---------- SERVER ----------
+app.listen(PORT, () => {
+  console.log(`Server is running on PORT ${PORT}`);
+});
+
