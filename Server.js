@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 4001;
 // ---------- CORS ----------
 const allowedOrigins = [
   "http://localhost:5173", // local frontend
-  "https://your-vercel-frontend-url.vercel.app" // replace with your Vercel URL
+  "https://streamify-frontend-beta.vercel.app" // replace with your Vercel URL
 ];
 
 app.use(cors({
